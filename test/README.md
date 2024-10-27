@@ -1,6 +1,6 @@
-# godot-cpp integration test
+# redot-cpp integration test
 
-This project is used to perform integration testing of the godot-cpp
+This project is used to perform integration testing of the redot-cpp
 extension, to validate PRs and implemented APIs.
 
 ## License

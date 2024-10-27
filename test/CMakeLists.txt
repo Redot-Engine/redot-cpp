@@ -133,7 +133,7 @@ if(CMAKE_VERSION VERSION_GREATER "3.13")
 	)
 else()
 	target_link_libraries(${PROJECT_NAME}
-			${CPP_BINDINGS_PATH}/bin/libgodot-cpp.${SYSTEM_NAME}.${BUILD_TYPE}$<$<NOT:$<PLATFORM_ID:Android>>:.${BITS}>.a
+			${CPP_BINDINGS_PATH}/bin/libredot-cpp.${SYSTEM_NAME}.${BUILD_TYPE}$<$<NOT:$<PLATFORM_ID:Android>>:.${BITS}>.a
 	)
 endif()
 
