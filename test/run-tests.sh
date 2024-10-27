@@ -1,11 +1,11 @@
 #!/bin/bash
 
-GODOT=${GODOT:-godot}
+REDOT=${REDOT:-redot}
 
 END_STRING="==== TESTS FINISHED ===="
 FAILURE_STRING="******** FAILED ********"
 
-OUTPUT=$($GODOT --path project --debug --headless --quit)
+OUTPUT=$($REDOT --path project --debug --headless --quit)
 ERRCODE=$?
 
 echo "$OUTPUT"

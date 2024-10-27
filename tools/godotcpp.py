@@ -245,7 +245,7 @@ def options(opts, env):
     opts.Add(
         BoolVariable(
             key="build_library",
-            help="Build the godot-cpp library.",
+            help="Build the redot-cpp library.",
             default=env.get("build_library", True),
         )
     )
@@ -548,7 +548,7 @@ def _godot_cpp(env):
     env.AppendUnique(CPPPATH=[env.Dir(d) for d in [extension_dir, "include", "gen/include"]])
 
     library = None
-    library_name = "libgodot-cpp" + env["suffix"] + env["LIBSUFFIX"]
+    library_name = "libredot-cpp" + env["suffix"] + env["LIBSUFFIX"]
 
     if env["build_library"]:
         library = env.StaticLibrary(target=env.File("bin/%s" % library_name), source=sources)

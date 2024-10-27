@@ -8,8 +8,8 @@ if len(sys.argv) < 2:
     print("Invalid usage of header_guards.py, it should be called with a path to one or multiple files.")
     sys.exit(1)
 
-HEADER_CHECK_OFFSET = 30
-HEADER_BEGIN_OFFSET = 31
+HEADER_CHECK_OFFSET = 32
+HEADER_BEGIN_OFFSET = 33
 HEADER_END_OFFSET = -1
 
 changed = []

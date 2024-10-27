@@ -4,8 +4,8 @@ on: [push, pull_request]
 env:
   # Only used for the cache key. Increment version to force clean build.
   GODOT_BASE_BRANCH: master
-  # Used to select the version of Godot to run the tests with.
-  GODOT_TEST_VERSION: master
+  # Used to select the version of Redot to run the tests with.
+  REDOT_TEST_VERSION: master
 
 concurrency:
   group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}
@@ -22,16 +22,16 @@ jobs:
           - name: 🐧 Linux (GCC)
             os: ubuntu-20.04
             platform: linux
-            artifact-name: godot-cpp-linux-glibc2.27-x86_64-release
-            artifact-path: bin/libgodot-cpp.linux.template_release.x86_64.a
+            artifact-name: redot-cpp-linux-glibc2.27-x86_64-release
+            artifact-path: bin/libredot-cpp.linux.template_release.x86_64.a
             run-tests: true
             cache-name: linux-x86_64
 
           - name: 🐧 Linux (GCC, Double Precision)
             os: ubuntu-20.04
             platform: linux
-            artifact-name: godot-cpp-linux-glibc2.27-x86_64-double-release
-            artifact-path: bin/libgodot-cpp.linux.template_release.double.x86_64.a
+            artifact-name: redot-cpp-linux-glibc2.27-x86_64-double-release
+            artifact-path: bin/libredot-cpp.linux.template_release.double.x86_64.a
             flags: precision=double
             run-tests: false
             cache-name: linux-x86_64-f64
@@ -39,16 +39,16 @@ jobs:
           - name: 🏁 Windows (x86_64, MSVC)
             os: windows-2019
             platform: windows
-            artifact-name: godot-cpp-windows-msvc2019-x86_64-release
-            artifact-path: bin/libgodot-cpp.windows.template_release.x86_64.lib
+            artifact-name: redot-cpp-windows-msvc2019-x86_64-release
+            artifact-path: bin/libredot-cpp.windows.template_release.x86_64.lib
             run-tests: false
             cache-name: windows-x86_64-msvc
 
           - name: 🏁 Windows (x86_64, MinGW)
             os: windows-2019
             platform: windows
-            artifact-name: godot-cpp-linux-mingw-x86_64-release
-            artifact-path: bin/libgodot-cpp.windows.template_release.x86_64.a
+            artifact-name: redot-cpp-linux-mingw-x86_64-release
+            artifact-path: bin/libredot-cpp.windows.template_release.x86_64.a
             flags: use_mingw=yes
             run-tests: false
             cache-name: windows-x86_64-mingw
@@ -56,8 +56,8 @@ jobs:
           - name: 🍎 macOS (universal)
             os: macos-latest
             platform: macos
-            artifact-name: godot-cpp-macos-universal-release
-            artifact-path: bin/libgodot-cpp.macos.template_release.universal.a
+            artifact-name: redot-cpp-macos-universal-release
+            artifact-path: bin/libredot-cpp.macos.template_release.universal.a
             flags: arch=universal
             run-tests: false
             cache-name: macos-universal
@@ -65,8 +65,8 @@ jobs:
           - name: 🤖 Android (arm64)
             os: ubuntu-20.04
             platform: android
-            artifact-name: godot-cpp-android-arm64-release
-            artifact-path: bin/libgodot-cpp.android.template_release.arm64.a
+            artifact-name: redot-cpp-android-arm64-release
+            artifact-path: bin/libredot-cpp.android.template_release.arm64.a
             flags: arch=arm64
             run-tests: false
             cache-name: android-arm64
@@ -74,8 +74,8 @@ jobs:
           - name: 🍏 iOS (arm64)
             os: macos-latest
             platform: ios
-            artifact-name: godot-cpp-ios-arm64-release
-            artifact-path: bin/libgodot-cpp.ios.template_release.arm64.a
+            artifact-name: redot-cpp-ios-arm64-release
+            artifact-path: bin/libredot-cpp.ios.template_release.arm64.a
             flags: arch=arm64
             run-tests: false
             cache-name: ios-arm64
@@ -83,8 +83,8 @@ jobs:
           - name: 🌐 Web (wasm32)
             os: ubuntu-20.04
             platform: web
-            artifact-name: godot-cpp-web-wasm32-release
-            artifact-path: bin/libgodot-cpp.web.template_release.wasm32.a
+            artifact-name: redot-cpp-web-wasm32-release
+            artifact-path: bin/libredot-cpp.web.template_release.wasm32.a
             run-tests: false
             cache-name: web-wasm32
 
@@ -99,7 +99,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Restore Godot build cache
+      - name: Restore Redot build cache
         uses: ./.github/actions/godot-cache-restore
         with:
           cache-name: ${{ matrix.cache-name }}
@@ -134,36 +134,36 @@ jobs:
         run: |
           python -m pip install scons==4.0.0
 
-      - name: Generate godot-cpp sources only
+      - name: Generate redot-cpp sources only
         run: |
           scons platform=${{ matrix.platform }} verbose=yes build_library=no ${{ matrix.flags }}
           scons -c
 
-      - name: Build godot-cpp (debug)
+      - name: Build redot-cpp (debug)
         run: |
           scons platform=${{ matrix.platform }} verbose=yes target=template_debug ${{ matrix.flags }}
 
-      - name: Build test without rebuilding godot-cpp (debug)
+      - name: Build test without rebuilding redot-cpp (debug)
         run: |
           cd test
           scons platform=${{ matrix.platform }} verbose=yes target=template_debug ${{ matrix.flags }} build_library=no
 
-      - name: Build test and godot-cpp (release)
+      - name: Build test and redot-cpp (release)
         run: |
           cd test
           scons platform=${{ matrix.platform }} verbose=yes target=template_release ${{ matrix.flags }}
 
-      - name: Save Godot build cache
+      - name: Save Redot build cache
         uses: ./.github/actions/godot-cache-save
         with:
           cache-name: ${{ matrix.cache-name }}
         continue-on-error: true
 
-      - name: Download latest Godot artifacts
+      - name: Download latest Redot artifacts
         uses: dsnopek/action-download-artifact@1322f74e2dac9feed2ee76a32d9ae1ca3b4cf4e9
-        if: ${{ matrix.run-tests && env.GODOT_TEST_VERSION == 'master' }}
+        if: ${{ matrix.run-tests && env.REDOT_TEST_VERSION == 'master' }}
         with:
-          repo: godotengine/godot
+          repo: Redot-Engine/redot-engine
           branch: master
           event: push
           workflow: linux_builds.yml
@@ -172,29 +172,29 @@ jobs:
           search_artifacts: true
           check_artifacts: true
           ensure_latest: true
-          path: godot-artifacts
+          path: redot-artifacts
 
-      - name: Prepare Godot artifacts for testing
-        if: ${{ matrix.run-tests && env.GODOT_TEST_VERSION == 'master' }}
+      - name: Prepare Redot artifacts for testing
+        if: ${{ matrix.run-tests && env.REDOT_TEST_VERSION == 'master' }}
         run: |
-          chmod +x ./godot-artifacts/godot.linuxbsd.editor.x86_64.mono
-          echo "GODOT=$(pwd)/godot-artifacts/godot.linuxbsd.editor.x86_64.mono" >> $GITHUB_ENV
+          chmod +x ./redot-artifacts/redot.linuxbsd.editor.x86_64.mono
+          echo "REDOT=$(pwd)/redot-artifacts/redot.linuxbsd.editor.x86_64.mono" >> $GITHUB_ENV
 
-      - name: Download requested Godot version for testing
-        if: ${{ matrix.run-tests && env.GODOT_TEST_VERSION != 'master' }}
+      - name: Download requested Redot version for testing
+        if: ${{ matrix.run-tests && env.REDOT_TEST_VERSION != 'master' }}
         run: |
-          wget "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TEST_VERSION}/Godot_v${GODOT_TEST_VERSION}_linux.x86_64.zip" -O Godot.zip
-          unzip -a Godot.zip
-          chmod +x "Godot_v${GODOT_TEST_VERSION}_linux.x86_64"
-          echo "GODOT=$(pwd)/Godot_v${GODOT_TEST_VERSION}_linux.x86_64" >> $GITHUB_ENV
+          wget "https://github.com/Redot-Engine/redot-engine/releases/download/redot-${REDOT_TEST_VERSION}/Redot_v${REDOT_TEST_VERSION}_linux.x86_64.zip" -O Redot.zip
+          unzip -a Redot.zip
+          chmod +x "Redot_v${REDOT_TEST_VERSION}_linux.x86_64"
+          echo "REDOT=$(pwd)/Redot_v${REDOT_TEST_VERSION}_linux.x86_64" >> $GITHUB_ENV
 
       - name: Run tests
         if: ${{ matrix.run-tests }}
         run: |
-          $GODOT --headless --version
+          $REDOT --headless --version
           cd test
           # Need to run the editor so .godot is generated... but it crashes! Ignore that :-)
-          (cd project && (timeout 30 $GODOT --import --headless >/dev/null 2>&1 || true))
+          (cd project && (timeout 30 $REDOT --import --headless >/dev/null 2>&1 || true))
           ./run-tests.sh
 
       - name: Upload artifact
@@ -218,14 +218,14 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qqq build-essential pkg-config cmake
 
-      - name: Build godot-cpp
+      - name: Build redot-cpp
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release .
           make -j $(nproc) VERBOSE=1
 
       - name: Build test GDExtension library
         run: |
-          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../godot-headers" -DCPP_BINDINGS_PATH=".." .
+          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../redot-headers" -DCPP_BINDINGS_PATH=".." .
           make -j $(nproc) VERBOSE=1
 
   linux-cmake-ninja:
@@ -242,14 +242,14 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qqq build-essential pkg-config cmake ninja-build
 
-      - name: Build godot-cpp
+      - name: Build redot-cpp
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -GNinja .
           cmake --build . -j $(nproc) --verbose
 
       - name: Build test GDExtension library
         run: |
-          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../godot-headers" -DCPP_BINDINGS_PATH=".." -GNinja .
+          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../redot-headers" -DCPP_BINDINGS_PATH=".." -GNinja .
           cmake --build . -j $(nproc) --verbose
 
   windows-msvc-cmake:
@@ -261,12 +261,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build godot-cpp
+      - name: Build redot-cpp
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -G"Visual Studio 16 2019" .
           cmake --build . --verbose
 
       - name: Build test GDExtension library
         run: |
-          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../godot-headers" -DCPP_BINDINGS_PATH=".." -G"Visual Studio 16 2019" .
+          cd test && cmake -DCMAKE_BUILD_TYPE=Release -DGODOT_HEADERS_PATH="../redot-headers" -DCPP_BINDINGS_PATH=".." -G"Visual Studio 16 2019" .
           cmake --build . --verbose
