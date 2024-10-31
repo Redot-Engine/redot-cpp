@@ -36,8 +36,8 @@ web.release.wasm32 = "res://bin/libgdexample.web.template_release.wasm32.nothrea
 
 [dependencies]
 ios.debug = {
-  "res://bin/libgodot-cpp.ios.template_debug.xcframework": ""
+  "res://bin/libredot-cpp.ios.template_debug.xcframework": ""
 }
 ios.release = {
-  "res://bin/libgodot-cpp.ios.template_release.xcframework": ""
+  "res://bin/libredot-cpp.ios.template_release.xcframework": ""
 }
