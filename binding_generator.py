@@ -2197,6 +2197,7 @@ def generate_version_header(api, output_dir):
     header.append(f"#define GODOT_VERSION_MINOR {api['header']['version_minor']}")
     header.append(f"#define GODOT_VERSION_PATCH {api['header']['version_patch']}")
     header.append(f"#define GODOT_VERSION_STATUS \"{api['header']['version_status']}\"")
+    header.append(f"#define GODOT_VERSION_STATUS_VERSION \"{api['header']['version_status_version']}\"")
     header.append(f"#define GODOT_VERSION_BUILD \"{api['header']['version_build']}\"")
 
     header.append("")
@@ -3013,6 +3014,8 @@ header = """\
 /*                             GODOT ENGINE                               */
 /*                        https://godotengine.org                         */
 /**************************************************************************/
+/* Copyright (c) 2024-present Redot Engine contributors                   */
+/*                                          (see REDOT_AUTHORS.md)        */
 /* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
 /* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
 /*                                                                        */

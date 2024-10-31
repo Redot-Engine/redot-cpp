@@ -18,7 +18,7 @@
 - `ANDROID_TOOLCHAIN_NAME`:   The android toolchain (arm-linux-androideabi-4.9 or aarch64-linux-android-4.9 or x86-4.9 or x86_64-4.9)
 - `ANDROID_PLATFORM`:         The android platform version (android-23)
 
-- More info [here](https://godot.readthedocs.io/en/latest/development/compiling/compiling_for_android.html)
+- More info [here](https://docs.redotengine.org/en/latest/contributing/development/compiling/compiling_for_android)
 
 ## Examples
 ```shell
