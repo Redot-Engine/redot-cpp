@@ -4,7 +4,7 @@
 
 `CMAKE_BUILD_TYPE`:         Compilation target (Debug or Release defaults to Debug)
 
-### godot-cpp cmake arguments
+### redot-cpp cmake arguments
 - `GODOT_GDEXTENSION_DIR`:    Path to the directory containing GDExtension interface header and API JSON file
 - `GODOT_SYSTEM_HEADERS`:     Mark the header files as SYSTEM. This may be useful to suppress warnings in projects including this one.
 - `GODOT_WARNING_AS_ERROR`:   Treat any warnings as errors
