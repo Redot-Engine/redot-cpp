@@ -37,6 +37,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace godot {
+
 #if !defined(GDE_EXPORT)
 #if defined(_WIN32)
 #define GDE_EXPORT __declspec(dllexport)
@@ -128,5 +130,11 @@ struct BuildIndexSequence : BuildIndexSequence<N - 1, N - 1, Is...> {};
 
 template <size_t... Is>
 struct BuildIndexSequence<0, Is...> : IndexSequence<Is...> {};
+
+} //namespace godot
+
+// To maintain compatibility an alias is defined outside the namespace.
+// Consider it deprecated.
+using real_t = godot::real_t;
 
 #endif // GODOT_DEFS_HPP
