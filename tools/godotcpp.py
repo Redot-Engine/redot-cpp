@@ -10,7 +10,9 @@ from SCons.Tool import Tool
 from SCons.Variables import BoolVariable, EnumVariable, PathVariable
 from SCons.Variables.BoolVariable import _text2bool
 
-from binding_generator import scons_emit_files, scons_generate_bindings
+from binding_generator import _generate_bindings, _get_file_list, get_file_list
+from build_profile import generate_trimmed_api
+from doc_source_generator import scons_generate_doc_source
 
 
 def add_sources(sources, dir, extension):
@@ -127,6 +129,37 @@ def no_verbose(env):
     env.Append(JAVACCOMSTR=[java_compile_source_message])
     env.Append(RCCOMSTR=[compiled_resource_message])
     env.Append(GENCOMSTR=[generated_file_message])
+
+
+def scons_emit_files(target, source, env):
+    profile_filepath = env.get("build_profile", "")
+    if profile_filepath:
+        profile_filepath = normalize_path(profile_filepath, env)
+
+    # Always clean all files
+    env.Clean(target, [env.File(f) for f in get_file_list(str(source[0]), target[0].abspath, True, True)])
+
+    api = generate_trimmed_api(str(source[0]), profile_filepath)
+    files = [env.File(f) for f in _get_file_list(api, target[0].abspath, True, True)]
+    env["godot_cpp_gen_dir"] = target[0].abspath
+    return files, source
+
+
+def scons_generate_bindings(target, source, env):
+    profile_filepath = env.get("build_profile", "")
+    if profile_filepath:
+        profile_filepath = normalize_path(profile_filepath, env)
+
+    api = generate_trimmed_api(str(source[0]), profile_filepath)
+
+    _generate_bindings(
+        api,
+        env["generate_template_get_node"],
+        "32" if "32" in env["arch"] else "64",
+        env["precision"],
+        env["godot_cpp_gen_dir"],
+    )
+    return None
 
 
 platforms = ["linux", "macos", "windows", "android", "ios", "web"]
@@ -345,51 +378,6 @@ def options(opts, env):
             tool.options(opts)
 
 
-def make_doc_source(target, source, env):
-    import zlib
-
-    dst = str(target[0])
-    g = open(dst, "w", encoding="utf-8")
-    buf = ""
-    docbegin = ""
-    docend = ""
-    for src in source:
-        src_path = str(src)
-        if not src_path.endswith(".xml"):
-            continue
-        with open(src_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        buf += content
-
-    buf = (docbegin + buf + docend).encode("utf-8")
-    decomp_size = len(buf)
-
-    # Use maximum zlib compression level to further reduce file size
-    # (at the cost of initial build times).
-    buf = zlib.compress(buf, zlib.Z_BEST_COMPRESSION)
-
-    g.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-    g.write("\n")
-    g.write("#include <godot_cpp/godot.hpp>\n")
-    g.write("\n")
-
-    g.write('static const char *_doc_data_hash = "' + str(hash(buf)) + '";\n')
-    g.write("static const int _doc_data_uncompressed_size = " + str(decomp_size) + ";\n")
-    g.write("static const int _doc_data_compressed_size = " + str(len(buf)) + ";\n")
-    g.write("static const unsigned char _doc_data_compressed[] = {\n")
-    for i in range(len(buf)):
-        g.write("\t" + str(buf[i]) + ",\n")
-    g.write("};\n")
-    g.write("\n")
-
-    g.write(
-        "static godot::internal::DocDataRegistration _doc_data_registration(_doc_data_hash, _doc_data_uncompressed_size, _doc_data_compressed_size, _doc_data_compressed);\n"
-    )
-    g.write("\n")
-
-    g.close()
-
-
 def generate(env):
     # Default num_jobs to local cpu count if not user specified.
     # SCons has a peculiarity where user-specified options won't be overridden
@@ -522,7 +510,7 @@ def generate(env):
     env.Append(
         BUILDERS={
             "GodotCPPBindings": Builder(action=Action(scons_generate_bindings, "$GENCOMSTR"), emitter=scons_emit_files),
-            "GodotCPPDocData": Builder(action=make_doc_source),
+            "GodotCPPDocData": Builder(action=scons_generate_doc_source),
         }
     )
     env.AddMethod(_godot_cpp, "GodotCPP")

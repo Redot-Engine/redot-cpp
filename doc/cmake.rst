@@ -38,6 +38,27 @@ the notable differences.
     Does not define NDEBUG when disabled, NDEBUG is set via Release-like
     CMake build configurations; Release, MinSizeRel.
 
+Testing Integration
+-------------------
+When consuming a third party CMake project into yours, an unfortunate side
+effect is that the targets of the consumed project appear in the list of
+available targets, and are by default included in the ALL meta target
+created by most build systems. For this reason, all the targets specified
+in godot-cpp are marked with the ``EXCLUDE_FROM_ALL`` tag to prevent
+unnecessary compilation. The testing targets ``godot-cpp.test.<target>``
+are also guarded by ``GODOTCPP_ENABLE_TESTING`` which is off by default.
+
+To configure and build the godot-cpp project to enable the integration
+testing targets the command will look something like:
+
+.. code-block::
+
+    # Assuming our current directory is the godot-cpp source root
+    mkdir cmake-build
+    cd cmake-build
+    cmake .. -DGODOTCPP_ENABLE_TESTING=YES
+    cmake --build . --target godot-cpp.test.template_debug
+
 Basic walkthrough
 -----------------
 
@@ -73,21 +94,21 @@ Basic walkthrough
 
     .. code-block::
 
-        cmake ../ -G "Ninja"
+        cmake .. -G "Ninja"
 
     To list the available options CMake use the ``-L[AH]`` option. ``A`` is for
     advanced, and ``H`` is for help strings.
 
     .. code-block::
 
-        cmake ../ -LH
+        cmake .. -LH
 
     Options are specified on the command line when configuring
 
     .. code-block::
 
-        cmake ../ -DGODOT_USE_HOT_RELOAD:BOOL=ON \
-            -DGODOT_PRECISION:STRING=double \
+        cmake .. -DGODOTCPP_USE_HOT_RELOAD:BOOL=ON \
+            -DGODOTCPP_PRECISION:STRING=double \
             -DCMAKE_BUILD_TYPE:STRING=Debug
 
     Review setting-build-variables_ and build-configurations_ for more information.
@@ -99,32 +120,32 @@ Basic walkthrough
 
     .. code-block::
 
-        // Path to a custom GDExtension API JSON file (takes precedence over `GODOT_GDEXTENSION_DIR`) ( /path/to/custom_api_file )
-        `GODOT_CUSTOM_API_FILE:FILEPATH=`
+        // Path to a custom GDExtension API JSON file (takes precedence over `GODOTCPP_GDEXTENSION_DIR`) ( /path/to/custom_api_file )
+        `GODOTCPP_CUSTOM_API_FILE:FILEPATH=`
 
         // Force disabling exception handling code (ON|OFF)
-        GODOT_DISABLE_EXCEPTIONS:BOOL=ON
+        GODOTCPP_DISABLE_EXCEPTIONS:BOOL=ON
 
         // Path to a custom directory containing GDExtension interface header and API JSON file ( /path/to/gdextension_dir )
-        GODOT_GDEXTENSION_DIR:PATH=gdextension
+        GODOTCPP_GDEXTENSION_DIR:PATH=gdextension
 
         // Generate a template version of the Node class's get_node. (ON|OFF)
-        GODOT_GENERATE_TEMPLATE_GET_NODE:BOOL=ON
+        GODOTCPP_GENERATE_TEMPLATE_GET_NODE:BOOL=ON
 
         // Set the floating-point precision level (single|double)
-        GODOT_PRECISION:STRING=single
+        GODOTCPP_PRECISION:STRING=single
 
         // Symbols visibility on GNU platforms. Use 'auto' to apply the default value. (auto|visible|hidden)
-        GODOT_SYMBOL_VISIBILITY:STRING=hidden
+        GODOTCPP_SYMBOL_VISIBILITY:STRING=hidden
 
         // Expose headers as SYSTEM.
-        GODOT_SYSTEM_HEADERS:BOOL=ON
+        GODOTCPP_SYSTEM_HEADERS:BOOL=ON
 
         // Enable the extra accounting required to support hot reload. (ON|OFF)
-        GODOT_USE_HOT_RELOAD:BOOL=
+        GODOTCPP_USE_HOT_RELOAD:BOOL=
 
         // Treat warnings as errors
-        GODOT_WARNING_AS_ERROR:BOOL=OFF
+        GODOTCPP_WARNING_AS_ERROR:BOOL=OFF
 
 
 .. topic:: Compiling
@@ -137,78 +158,85 @@ Basic walkthrough
 
     .. code-block::
 
-        cmake --build . -t template_debug --config Release
+        cmake --build . -t template_debug --config Debug
 
 Examples
 --------
 
-Windows and MSVC
-~~~~~~~~~~~~~~~~
+Windows and MSVC - Release
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 So long as CMake is installed from the `CMake Downloads`_ page and in the PATH,
 and Microsoft Visual Studio is installed with c++ support, CMake will detect
 the MSVC compiler.
 
+Remembering that Visual Studio is a Multi-Config Generator so the build type
+needs to be specified at build time.
+
 .. _CMake downloads: https://cmake.org/download/
 
-Assuming the current working directory is the godot-cpp project root:
-
 .. code-block::
 
+    # Assuming our current directory is the godot-cpp source root
     mkdir build-msvc
     cd build-msvc
-    cmake ../
-    cmake --build . -t godot-cpp-test --config Release
+    cmake .. -DGODOTCPP_ENABLE_TESTING=YES
+    cmake --build . -t godot-cpp.test.template_debug --config Debug
 
 
-MSys2/clang64, "Ninja", godot-cpp-test target with debug symbols
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MSys2/clang64, "Ninja" - Debug
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Assumes the ming-w64-clang-x86_64-toolchain is installed
+
+Remembering that Ninja is a Single-Config Generator so the build type
+needs to be specified at Configure time.
 
 Using the msys2/clang64 shell
 
 .. code-block::
 
+    # Assuming our current directory is the godot-cpp source root
     mkdir build-clang
     cd build-clang
-    cmake ../ -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Debug
-    cmake --build . -t godot-cpp-test
+    cmake .. -G"Ninja" -DGODOTCPP_ENABLE_TESTING=YES -DCMAKE_BUILD_TYPE=Debug
+    cmake --build . -t godot-cpp.test.template_debug
 
-MSys2/clang64, "Ninja Multi-Config", godot-cpp-test target with GODOT_DEV_BUILD
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MSys2/clang64, "Ninja Multi-Config" - dev_build, Debug Symbols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Assumes the ming-w64-clang-x86_64-toolchain is installed
+
+This time we are choosing the 'Ninja Multi-Config' generator, so the build
+type is specified at build time.
 
 Using the msys2/clang64 shell
 
 .. code-block::
 
+    # Assuming our current directory is the godot-cpp source root
     mkdir build-clang
     cd build-clang
-    cmake ../ -G"Ninja Multi-Config" -DGODOT_DEV_BUILD:BOOL=ON
-    cmake --build . -t godot-cpp-test --config Debug
+    cmake .. -G"Ninja Multi-Config" -DGODOTCPP_ENABLE_TESTING=YES -DGODOTCPP_DEV_BUILD:BOOL=ON
+    cmake --build . -t godot-cpp.test.template_debug --config Debug
 
-Emscripten for web, template_release target
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Emscripten for web platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 I've only tested this on windows so far.
 
-I cloned, installed, and activating the latest Emscripten tools(for me it was
-3.1.69) to ``c:\emsdk``
+I cloned and installed the latest Emscripten tools to ``c:\emsdk``
+At the time of writing that was v3.1.69
 
-From a terminal running the ``c:\emsdk\emcmdprompt.bat`` puts me in a cmdprompt
-context which I dislike, so after that I run pwsh to get my powershell 7.4.5
-context back.
+I've been using ``C:\emsdk\emsdk.ps1 activate latest`` to enable the
+environment from powershell in the current shell.
 
-using the ``emcmake.bat`` command adds the emscripten toolchain to the CMake
-command
+The ``emcmake.bat`` utility adds the emscripten toolchain to the CMake command
 
 .. code-block::
 
-    C:\emsdk\emcmdprompt.bat
-    pwsh
-    cd <godot-cpp source folder>
+    # Assuming our current directory is the godot-cpp source root
+    C:\emsdk\emsdk.ps1 activate latest
     mkdir build-wasm32
     cd build-wasm32
     emcmake.bat cmake ../
-    cmake --build . --verbose -t template_release
+    cmake --build . --target template_release
 
 Android Cross Compile from Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,7 +249,7 @@ own toolchain file as listed in the cmake-toolchains_ documentation
 
 Or use the toolchain and scripts provided by the Android SDK and make changes
 using the ``ANDROID_*`` variables listed there. Where ``<version>`` is whatever
-ndk version you have installed ( tested with `23.2.8568313`) and ``<platform>``
+ndk version you have installed (tested with `23.2.8568313`) and ``<platform>``
 is for android sdk platform, (tested with ``android-29``)
 
 .. warning::
@@ -234,18 +262,20 @@ is for android sdk platform, (tested with ``android-29``)
 
     .. code-block::
 
+        # Assuming our current directory is the godot-cpp source root
         mkdir build-android
         cd build-android
-        cmake ../ --toolchain my_toolchain.cmake
+        cmake .. --toolchain my_toolchain.cmake
         cmake --build . -t template_release
 
     Doing the equivalent on just using the command line
 
     .. code-block::
 
+        # Assuming our current directory is the godot-cpp source root
         mkdir build-android
         cd build-android
-        cmake ../ \
+        cmake .. \
             -DCMAKE_SYSTEM_NAME=Android \
             -DCMAKE_SYSTEM_VERSION=<platform> \
             -DCMAKE_ANDROID_ARCH_ABI=<arch> \
@@ -258,20 +288,22 @@ is for android sdk platform, (tested with ``android-29``)
 
     .. code-block::
 
+        # Assuming our current directory is the godot-cpp source root
         mkdir build-android
         cd build-android
-        cmake ../ --toolchain $ANDROID_HOME/ndk/<version>/build/cmake/android.toolchain.cmake
+        cmake .. --toolchain $ANDROID_HOME/ndk/<version>/build/cmake/android.toolchain.cmake
         cmake --build . -t template_release
 
     Specify Android platform and ABI
 
     .. code-block::
 
+        # Assuming our current directory is the godot-cpp source root
         mkdir build-android
         cd build-android
-        cmake ../ --toolchain $ANDROID_HOME/ndk/<version>/build/cmake/android.toolchain.cmake \
-          -DANDROID_PLATFORM:STRING=android-29 \
-          -DANDROID_ABI:STRING=armeabi-v7a
+        cmake .. --toolchain $ANDROID_HOME/ndk/<version>/build/cmake/android.toolchain.cmake \
+            -DANDROID_PLATFORM:STRING=android-29 \
+            -DANDROID_ABI:STRING=armeabi-v7a
         cmake --build . -t template_release
 
 

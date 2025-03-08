@@ -70,10 +70,9 @@ def generate_wrappers(target):
         f.write(txt)
 
 
-def generate_virtual_version(argcount, const=False, returns=False):
+def generate_virtual_version(argcount, const=False, returns=False, required=False):
     s = """#define GDVIRTUAL$VER($RET m_name $ARG)\\
 	::godot::StringName _gdvirtual_##m_name##_sn = #m_name;\\
-	template <bool required>\\
 	_FORCE_INLINE_ bool _gdvirtual_##m_name##_call($CALLARGS) $CONST {\\
 		if (::godot::internal::gdextension_interface_object_has_script_method(_owner, &_gdvirtual_##m_name##_sn)) { \\
 			GDExtensionCallError ce;\\
@@ -85,10 +84,8 @@ def generate_virtual_version(argcount, const=False, returns=False):
 				return true;\\
 			}\\
 		}\\
-		if (required) {\\
-			ERR_PRINT_ONCE("Required virtual method " + get_class() + "::" + #m_name + " must be overridden before calling.");\\
-			$RVOID\\
-		}\\
+		$REQCHECK\\
+		$RVOID\\
 		return false;\\
 	}\\
 	_FORCE_INLINE_ bool _gdvirtual_##m_name##_overridden() const {\\
@@ -106,6 +103,7 @@ def generate_virtual_version(argcount, const=False, returns=False):
 
     sproto = str(argcount)
     method_info = ""
+    method_flags = "METHOD_FLAG_VIRTUAL"
     if returns:
         sproto += "R"
         s = s.replace("$RET", "m_ret,")
@@ -114,16 +112,26 @@ def generate_virtual_version(argcount, const=False, returns=False):
         method_info += "\t\tmethod_info.return_val_metadata = ::godot::GetTypeInfo<m_ret>::METADATA;"
     else:
         s = s.replace("$RET ", "")
-        s = s.replace("\t\t\t$RVOID\\\n", "")
+        s = s.replace("\t\t$RVOID\\\n", "")
 
     if const:
         sproto += "C"
+        method_flags += " | METHOD_FLAG_CONST"
         s = s.replace("$CONST", "const")
-        s = s.replace("$METHOD_FLAGS", "::godot::METHOD_FLAG_VIRTUAL | ::godot::METHOD_FLAG_CONST")
     else:
         s = s.replace("$CONST ", "")
-        s = s.replace("$METHOD_FLAGS", "::godot::METHOD_FLAG_VIRTUAL")
 
+    if required:
+        sproto += "_REQUIRED"
+        method_flags += " | METHOD_FLAG_VIRTUAL_REQUIRED"
+        s = s.replace(
+            "$REQCHECK",
+            'ERR_PRINT_ONCE("Required virtual method " + get_class() + "::" + #m_name + " must be overridden before calling.");',
+        )
+    else:
+        s = s.replace("\t\t$REQCHECK\\\n", "")
+
+    s = s.replace("$METHOD_FLAGS", method_flags)
     s = s.replace("$VER", sproto)
     argtext = ""
     callargtext = ""
@@ -190,6 +198,10 @@ def generate_virtuals(target):
         txt += generate_virtual_version(i, False, True)
         txt += generate_virtual_version(i, True, False)
         txt += generate_virtual_version(i, True, True)
+        txt += generate_virtual_version(i, False, False, True)
+        txt += generate_virtual_version(i, False, True, True)
+        txt += generate_virtual_version(i, True, False, True)
+        txt += generate_virtual_version(i, True, True, True)
 
     txt += "#endif // GDEXTENSION_GDVIRTUAL_GEN_H\n"
 
@@ -197,13 +209,16 @@ def generate_virtuals(target):
         f.write(txt)
 
 
-def get_file_list(api_filepath, output_dir, headers=False, sources=False, profile_filepath=""):
+def get_file_list(api_filepath, output_dir, headers=False, sources=False):
     api = {}
-    files = []
     with open(api_filepath, encoding="utf-8") as api_file:
         api = json.load(api_file)
 
-    build_profile = parse_build_profile(profile_filepath, api)
+    return _get_file_list(api, output_dir, headers, sources)
+
+
+def _get_file_list(api, output_dir, headers=False, sources=False):
+    files = []
 
     core_gen_folder = Path(output_dir) / "gen" / "include" / "godot_cpp" / "core"
     include_gen_folder = Path(output_dir) / "gen" / "include" / "godot_cpp"
@@ -235,7 +250,7 @@ def get_file_list(api_filepath, output_dir, headers=False, sources=False, profil
         source_filename = source_gen_folder / "classes" / (camel_to_snake(engine_class["name"]) + ".cpp")
         if headers:
             files.append(str(header_filename.as_posix()))
-        if sources and is_class_included(engine_class["name"], build_profile):
+        if sources:
             files.append(str(source_filename.as_posix()))
 
     for native_struct in api["native_structures"]:
@@ -267,128 +282,19 @@ def get_file_list(api_filepath, output_dir, headers=False, sources=False, profil
     return files
 
 
-def print_file_list(api_filepath, output_dir, headers=False, sources=False, profile_filepath=""):
-    print(*get_file_list(api_filepath, output_dir, headers, sources, profile_filepath), sep=";", end=None)
-
-
-def parse_build_profile(profile_filepath, api):
-    if profile_filepath == "":
-        return {}
-    print("Using feature build profile: " + profile_filepath)
-
-    with open(profile_filepath, encoding="utf-8") as profile_file:
-        profile = json.load(profile_file)
-
-    api_dict = {}
-    parents = {}
-    children = {}
-    for engine_class in api["classes"]:
-        api_dict[engine_class["name"]] = engine_class
-        parent = engine_class.get("inherits", "")
-        child = engine_class["name"]
-        parents[child] = parent
-        if parent == "":
-            continue
-        children[parent] = children.get(parent, [])
-        children[parent].append(child)
-
-    # Parse methods dependencies
-    deps = {}
-    reverse_deps = {}
-    for name, engine_class in api_dict.items():
-        ref_cls = set()
-        for method in engine_class.get("methods", []):
-            rtype = method.get("return_value", {}).get("type", "")
-            args = [a["type"] for a in method.get("arguments", [])]
-            if rtype in api_dict:
-                ref_cls.add(rtype)
-            elif is_enum(rtype) and get_enum_class(rtype) in api_dict:
-                ref_cls.add(get_enum_class(rtype))
-            for arg in args:
-                if arg in api_dict:
-                    ref_cls.add(arg)
-                elif is_enum(arg) and get_enum_class(arg) in api_dict:
-                    ref_cls.add(get_enum_class(arg))
-        deps[engine_class["name"]] = set(filter(lambda x: x != name, ref_cls))
-        for acls in ref_cls:
-            if acls == name:
-                continue
-            reverse_deps[acls] = reverse_deps.get(acls, set())
-            reverse_deps[acls].add(name)
-
-    included = []
-    front = list(profile.get("enabled_classes", []))
-    if front:
-        # These must always be included
-        front.append("WorkerThreadPool")
-        front.append("ClassDB")
-        front.append("ClassDBSingleton")
-    while front:
-        cls = front.pop()
-        if cls in included:
-            continue
-        included.append(cls)
-        parent = parents.get(cls, "")
-        if parent:
-            front.append(parent)
-        for rcls in deps.get(cls, set()):
-            if rcls in included or rcls in front:
-                continue
-            front.append(rcls)
-
-    excluded = []
-    front = list(profile.get("disabled_classes", []))
-    while front:
-        cls = front.pop()
-        if cls in excluded:
-            continue
-        excluded.append(cls)
-        front += children.get(cls, [])
-        for rcls in reverse_deps.get(cls, set()):
-            if rcls in excluded or rcls in front:
-                continue
-            front.append(rcls)
-
-    if included and excluded:
-        print(
-            "WARNING: Cannot specify both 'enabled_classes' and 'disabled_classes' in build profile. 'disabled_classes' will be ignored."
-        )
-
-    return {
-        "enabled_classes": included,
-        "disabled_classes": excluded,
-    }
-
-
-def scons_emit_files(target, source, env):
-    profile_filepath = env.get("build_profile", "")
-    if profile_filepath and not Path(profile_filepath).is_absolute():
-        profile_filepath = str((Path(env.Dir("#").abspath) / profile_filepath).as_posix())
-
-    files = [env.File(f) for f in get_file_list(str(source[0]), target[0].abspath, True, True, profile_filepath)]
-    env.Clean(target, files)
-    env["godot_cpp_gen_dir"] = target[0].abspath
-    return files, source
-
-
-def scons_generate_bindings(target, source, env):
-    generate_bindings(
-        str(source[0]),
-        env["generate_template_get_node"],
-        "32" if "32" in env["arch"] else "64",
-        env["precision"],
-        env["godot_cpp_gen_dir"],
-    )
-    return None
+def print_file_list(api_filepath, output_dir, headers=False, sources=False):
+    print(*get_file_list(api_filepath, output_dir, headers, sources), sep=";", end=None)
 
 
 def generate_bindings(api_filepath, use_template_get_node, bits="64", precision="single", output_dir="."):
-    api = None
-
-    target_dir = Path(output_dir) / "gen"
-
+    api = {}
     with open(api_filepath, encoding="utf-8") as api_file:
         api = json.load(api_file)
+    _generate_bindings(api, use_template_get_node, bits, precision, output_dir)
+
+
+def _generate_bindings(api, use_template_get_node, bits="64", precision="single", output_dir="."):
+    target_dir = Path(output_dir) / "gen"
 
     shutil.rmtree(target_dir, ignore_errors=True)
     target_dir.mkdir(parents=True)
@@ -1788,7 +1694,7 @@ def generate_engine_class_header(class_api, used_classes, fully_used_classes, us
                     # condition returns false (in such cases it can't compile due to ambiguity).
                     f"\t\tif constexpr (!std::is_same_v<decltype(&B::{method_name}), decltype(&T::{method_name})>) {{"
                 )
-                result.append(f"\t\t\tBIND_VIRTUAL_METHOD(T, {method_name});")
+                result.append(f"\t\t\tBIND_VIRTUAL_METHOD(T, {method_name}, {method['hash']});")
                 result.append("\t\t}")
 
     result.append("\t}")
@@ -2457,6 +2363,10 @@ def get_encoded_arg(arg_name, type_name, type_meta):
         result.append(f"\t{get_gdextension_type(arg_type)} {name}_encoded;")
         result.append(f"\tPtrToArg<{correct_type(type_name)}>::encode({name}, &{name}_encoded);")
         name = f"&{name}_encoded"
+    elif is_enum(type_name) and not is_bitfield(type_name):
+        result.append(f"\tint64_t {name}_encoded;")
+        result.append(f"\tPtrToArg<int64_t>::encode({name}, &{name}_encoded);")
+        name = f"&{name}_encoded"
     elif is_engine_class(type_name):
         # `{name}` is a C++ wrapper, it contains a field which is the object's pointer Godot expects.
         # We have to check `nullptr` because when the caller sends `nullptr`, the wrapper itself will be null.
@@ -2765,20 +2675,6 @@ def is_struct_type(type_name):
 
 def is_refcounted(type_name):
     return type_name in engine_classes and engine_classes[type_name]
-
-
-def is_class_included(class_name, build_profile):
-    """
-    Check if an engine class should be included.
-    This removes classes according to a build profile of enabled or disabled classes.
-    """
-    included = build_profile.get("enabled_classes", [])
-    excluded = build_profile.get("disabled_classes", [])
-    if included:
-        return class_name in included
-    if excluded:
-        return class_name not in excluded
-    return True
 
 
 def is_included(type_name, current_type):
