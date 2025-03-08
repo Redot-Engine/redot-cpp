@@ -15,8 +15,7 @@ function( web_options )
 endfunction()
 
 
-function( web_generate TARGET_NAME )
-
+function( web_generate )
     target_compile_definitions(${TARGET_NAME}
             PUBLIC
             WEB_ENABLED
@@ -28,6 +27,7 @@ function( web_generate TARGET_NAME )
             -sSIDE_MODULE
             -sSUPPORT_LONGJMP=wasm
             -fno-exceptions
+            $<${THREADS_ENABLED}:-sUSE_PTHREADS=1>
     )
 
     target_link_options( ${TARGET_NAME}
@@ -38,5 +38,5 @@ function( web_generate TARGET_NAME )
             -shared
     )
 
-    common_compiler_flags( ${TARGET_NAME} )
+    common_compiler_flags()
 endfunction()

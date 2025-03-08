@@ -44,7 +44,7 @@ function( compiler_detection )
     endif ()
 endfunction(  )
 
-function( common_compiler_flags TARGET_NAME )
+function( common_compiler_flags )
 
     target_compile_features(${TARGET_NAME}
             PUBLIC
@@ -152,9 +152,11 @@ function( common_compiler_flags TARGET_NAME )
 
             $<${HOT_RELOAD}:HOT_RELOAD_ENABLED>
 
-            $<$<STREQUAL:${GODOT_PRECISION},double>:REAL_T_IS_DOUBLE>
+            $<$<STREQUAL:${GODOTCPP_PRECISION},double>:REAL_T_IS_DOUBLE>
 
             $<${IS_MSVC}:$<${DISABLE_EXCEPTIONS}:_HAS_EXCEPTIONS=0>>
+
+            $<${THREADS_ENABLED}:THREADS_ENABLED>
     )
 
     target_link_options( ${TARGET_NAME}

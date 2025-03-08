@@ -275,7 +275,9 @@ typedef GDExtensionObjectPtr (*GDExtensionClassCreateInstance2)(void *p_class_us
 typedef void (*GDExtensionClassFreeInstance)(void *p_class_userdata, GDExtensionClassInstancePtr p_instance);
 typedef GDExtensionClassInstancePtr (*GDExtensionClassRecreateInstance)(void *p_class_userdata, GDExtensionObjectPtr p_object);
 typedef GDExtensionClassCallVirtual (*GDExtensionClassGetVirtual)(void *p_class_userdata, GDExtensionConstStringNamePtr p_name);
+typedef GDExtensionClassCallVirtual (*GDExtensionClassGetVirtual2)(void *p_class_userdata, GDExtensionConstStringNamePtr p_name, uint32_t p_hash);
 typedef void *(*GDExtensionClassGetVirtualCallData)(void *p_class_userdata, GDExtensionConstStringNamePtr p_name);
+typedef void *(*GDExtensionClassGetVirtualCallData2)(void *p_class_userdata, GDExtensionConstStringNamePtr p_name, uint32_t p_hash);
 typedef void (*GDExtensionClassCallVirtualWithData)(GDExtensionClassInstancePtr p_instance, GDExtensionConstStringNamePtr p_name, void *p_virtual_call_userdata, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_ret);
 
 typedef struct {
@@ -386,14 +388,14 @@ typedef struct {
 	GDExtensionClassFreeInstance free_instance_func; // Destructor; mandatory.
 	GDExtensionClassRecreateInstance recreate_instance_func;
 	// Queries a virtual function by name and returns a callback to invoke the requested virtual function.
-	GDExtensionClassGetVirtual get_virtual_func;
+	GDExtensionClassGetVirtual2 get_virtual_func;
 	// Paired with `call_virtual_with_data_func`, this is an alternative to `get_virtual_func` for extensions that
 	// need or benefit from extra data when calling virtual functions.
 	// Returns user data that will be passed to `call_virtual_with_data_func`.
 	// Returning `NULL` from this function signals to Godot that the virtual function is not overridden.
 	// Data returned from this function should be managed by the extension and must be valid until the extension is deinitialized.
 	// You should supply either `get_virtual_func`, or `get_virtual_call_data_func` with `call_virtual_with_data_func`.
-	GDExtensionClassGetVirtualCallData get_virtual_call_data_func;
+	GDExtensionClassGetVirtualCallData2 get_virtual_call_data_func;
 	// Used to call virtual functions when `get_virtual_call_data_func` is not null.
 	GDExtensionClassCallVirtualWithData call_virtual_with_data_func;
 	void *class_userdata; // Per-class user data, later accessible in instance bindings.
@@ -845,7 +847,7 @@ typedef void (*GDExtensionInterfaceMemFree)(void *p_ptr);
  *
  * Logs an error to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
  * @param p_line The line where the error occurred.
@@ -859,7 +861,7 @@ typedef void (*GDExtensionInterfacePrintError)(const char *p_description, const 
  *
  * Logs an error with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_message The message to show along with the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
@@ -874,7 +876,7 @@ typedef void (*GDExtensionInterfacePrintErrorWithMessage)(const char *p_descript
  *
  * Logs a warning to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the warning.
+ * @param p_description The code triggering the warning.
  * @param p_function The function name where the warning occurred.
  * @param p_file The file where the warning occurred.
  * @param p_line The line where the warning occurred.
@@ -888,7 +890,7 @@ typedef void (*GDExtensionInterfacePrintWarning)(const char *p_description, cons
  *
  * Logs a warning with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the warning.
+ * @param p_description The code triggering the warning.
  * @param p_message The message to show along with the warning.
  * @param p_function The function name where the warning occurred.
  * @param p_file The file where the warning occurred.
@@ -903,7 +905,7 @@ typedef void (*GDExtensionInterfacePrintWarningWithMessage)(const char *p_descri
  *
  * Logs a script error to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
  * @param p_line The line where the error occurred.
@@ -917,7 +919,7 @@ typedef void (*GDExtensionInterfacePrintScriptError)(const char *p_description, 
  *
  * Logs a script error with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_message The message to show along with the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
