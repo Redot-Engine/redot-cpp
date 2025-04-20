@@ -2099,11 +2099,20 @@ def generate_version_header(api, output_dir):
     header.append(f"#define {header_guard}")
     header.append("")
 
+    header.append(f"#define REDOT_VERSION_MAJOR {api['redot_header']['version_major']}")
+    header.append(f"#define REDOT_VERSION_MINOR {api['redot_header']['version_minor']}")
+    header.append(f"#define REDOT_VERSION_PATCH {api['redot_header']['version_patch']}")
+    header.append(f"#define REDOT_VERSION_STATUS \"{api['redot_header']['version_status']}\"")
+    header.append(f"#define REDOT_VERSION_STATUS_VERSION {api['redot_header']['version_status_version']}")
+    header.append(f"#define REDOT_VERSION_BUILD \"{api['redot_header']['version_build']}\"")
+
     header.append(f"#define GODOT_VERSION_MAJOR {api['header']['version_major']}")
     header.append(f"#define GODOT_VERSION_MINOR {api['header']['version_minor']}")
     header.append(f"#define GODOT_VERSION_PATCH {api['header']['version_patch']}")
     header.append(f"#define GODOT_VERSION_STATUS \"{api['header']['version_status']}\"")
-    header.append(f"#define GODOT_VERSION_STATUS_VERSION \"{api['header']['version_status_version']}\"")
+    header.append(
+        f"#define GODOT_VERSION_STATUS_VERSION {next(filter(str.isdigit, api['header']['version_status']), 0)}"
+    )
     header.append(f"#define GODOT_VERSION_BUILD \"{api['header']['version_build']}\"")
 
     header.append("")
