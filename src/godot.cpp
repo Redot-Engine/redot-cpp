@@ -50,9 +50,11 @@ GDExtensionClassLibraryPtr library = nullptr;
 void *token = nullptr;
 
 GDExtensionGodotVersion godot_version = { 0, 0, 0, nullptr };
+GDExtensionRedotVersion redot_version = { 0, 0, 0, 0, nullptr, 0, nullptr, nullptr, 0, nullptr };
 
 // All of the GDExtension interface functions.
 GDExtensionInterfaceGetGodotVersion gdextension_interface_get_godot_version = nullptr;
+GDExtensionInterfaceGetRedotVersion gdextension_interface_get_redot_version = nullptr;
 GDExtensionInterfaceMemAlloc gdextension_interface_mem_alloc = nullptr;
 GDExtensionInterfaceMemRealloc gdextension_interface_mem_realloc = nullptr;
 GDExtensionInterfaceMemFree gdextension_interface_mem_free = nullptr;
@@ -307,16 +309,23 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 	LOAD_PROC_ADDRESS(get_godot_version, GDExtensionInterfaceGetGodotVersion);
 	internal::gdextension_interface_get_godot_version(&internal::godot_version);
 
-	// Check that godot-cpp was compiled using an extension_api.json older or at the
-	// same version as the Godot that is loading it.
+	internal::gdextension_interface_get_redot_version = (GDExtensionInterfaceGetRedotVersion)p_get_proc_address("get_redot_version");
+	if (!internal::gdextension_interface_get_redot_version) {
+		ERR_PRINT_EARLY("Cannot load a GDExtension built for Redot using Godot or non-Redot derivative.");
+		return false;
+	}
+	internal::gdextension_interface_get_redot_version(&internal::redot_version);
+
+	// Check that redot-cpp was compiled using an extension_api.json older or at the
+	// same version as the Redot that is loading it.
 	bool compatible;
-	if (internal::godot_version.major != GODOT_VERSION_MAJOR) {
-		compatible = internal::godot_version.major > GODOT_VERSION_MAJOR;
-	} else if (internal::godot_version.minor != GODOT_VERSION_MINOR) {
-		compatible = internal::godot_version.minor > GODOT_VERSION_MINOR;
+	if (internal::redot_version.major != REDOT_VERSION_MAJOR) {
+		compatible = internal::redot_version.major > REDOT_VERSION_MAJOR;
+	} else if (internal::redot_version.minor != REDOT_VERSION_MINOR) {
+		compatible = internal::redot_version.minor > REDOT_VERSION_MINOR;
 	} else {
 #if GODOT_VERSION_PATCH > 0
-		compatible = internal::godot_version.patch >= GODOT_VERSION_PATCH;
+		compatible = internal::redot_version.patch >= REDOT_VERSION_PATCH;
 #else
 		// Prevent -Wtype-limits warning due to unsigned comparison.
 		compatible = true;
@@ -326,9 +335,9 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 		// We need to use snprintf() here because vformat() uses Variant, and we haven't loaded
 		// the GDExtension interface far enough to use Variants yet.
 		char msg[128];
-		snprintf(msg, 128, "Cannot load a GDExtension built for Godot %d.%d.%d using an older version of Godot (%d.%d.%d).",
-				GODOT_VERSION_MAJOR, GODOT_VERSION_MINOR, GODOT_VERSION_PATCH,
-				internal::godot_version.major, internal::godot_version.minor, internal::godot_version.patch);
+		snprintf(msg, 128, "Cannot load a GDExtension built for Redot %d.%d.%d using an older version of Redot (%d.%d.%d).",
+				REDOT_VERSION_MAJOR, REDOT_VERSION_MINOR, REDOT_VERSION_PATCH,
+				internal::redot_version.major, internal::redot_version.minor, internal::redot_version.patch);
 		ERR_PRINT_EARLY(msg);
 		return false;
 	}

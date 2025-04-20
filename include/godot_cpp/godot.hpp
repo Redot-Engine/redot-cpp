@@ -44,9 +44,11 @@ extern "C" GDExtensionClassLibraryPtr library;
 extern "C" void *token;
 
 extern "C" GDExtensionGodotVersion godot_version;
+extern "C" GDExtensionRedotVersion redot_version;
 
 // All of the GDExtension interface functions.
 extern "C" GDExtensionInterfaceGetGodotVersion gdextension_interface_get_godot_version;
+extern "C" GDExtensionInterfaceGetRedotVersion gdextension_interface_get_redot_version;
 extern "C" GDExtensionInterfaceMemAlloc gdextension_interface_mem_alloc;
 extern "C" GDExtensionInterfaceMemRealloc gdextension_interface_mem_realloc;
 extern "C" GDExtensionInterfaceMemFree gdextension_interface_mem_free;
