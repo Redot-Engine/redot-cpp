@@ -30,8 +30,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_CLASS_DB_HPP
-#define GODOT_CLASS_DB_HPP
+#pragma once
 
 #include <gdextension_interface.h>
 
@@ -169,6 +168,8 @@ public:
 	_FORCE_INLINE_ static void _register_engine_class(const StringName &p_name, const GDExtensionInstanceBindingCallbacks *p_callbacks) {
 		instance_binding_callbacks[p_name] = p_callbacks;
 	}
+
+	static void _editor_get_classes_used_callback(GDExtensionTypePtr p_packed_string_array);
 
 	static void _register_engine_singleton(const StringName &p_class_name, Object *p_singleton) {
 		std::lock_guard<std::mutex> lock(engine_singletons_mutex);
@@ -372,5 +373,3 @@ MethodBind *ClassDB::bind_vararg_method(uint32_t p_flags, StringName p_name, M p
 } // namespace godot
 
 CLASSDB_SINGLETON_VARIANT_CAST;
-
-#endif // GODOT_CLASS_DB_HPP

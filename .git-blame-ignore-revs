@@ -9,3 +9,6 @@
 
 # Rebrand preambles to Redot
 d3bd3484fc9baad20a7cc4c9371a5f4dd70744cd
+
+# Style: Replace header guards with `#pragma once`
+7056c996dd43ae1aa466c94d95cc2fe63853d8a9

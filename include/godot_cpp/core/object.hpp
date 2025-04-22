@@ -30,8 +30,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_OBJECT_HPP
-#define GODOT_OBJECT_HPP
+#pragma once
 
 #include <godot_cpp/core/defs.hpp>
 
@@ -150,5 +149,3 @@ const T *Object::cast_to(const Object *p_object) {
 }
 
 } // namespace godot
-
-#endif // GODOT_OBJECT_HPP

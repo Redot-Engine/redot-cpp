@@ -30,8 +30,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_MUTEX_LOCK_HPP
-#define GODOT_MUTEX_LOCK_HPP
+#pragma once
 
 #include <godot_cpp/classes/mutex.hpp>
 
@@ -57,5 +56,3 @@ public:
 #define _THREAD_SAFE_UNLOCK_ _thread_safe_.unlock();
 
 } // namespace godot
-
-#endif // GODOT_MUTEX_LOCK_HPP
