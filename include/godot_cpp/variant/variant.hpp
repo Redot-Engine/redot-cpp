@@ -147,7 +147,7 @@ private:
 	static GDExtensionTypeFromVariantConstructorFunc to_type_constructor[VARIANT_MAX];
 
 public:
-	_FORCE_INLINE_ GDExtensionVariantPtr _native_ptr() const { return const_cast<uint8_t(*)[GODOT_CPP_VARIANT_SIZE]>(&opaque); }
+	_FORCE_INLINE_ GDExtensionVariantPtr _native_ptr() const { return const_cast<uint8_t (*)[GODOT_CPP_VARIANT_SIZE]>(&opaque); }
 	Variant();
 	Variant(std::nullptr_t n) :
 			Variant() {}
@@ -410,7 +410,8 @@ Array::ConstIterator Array::end() const {
 	return Array::ConstIterator(ptr() + size());
 }
 
-Array::Array(std::initializer_list<Variant> p_init) {
+Array::Array(std::initializer_list<Variant> p_init) :
+		Array() {
 	ERR_FAIL_COND(resize(p_init.size()) != 0);
 
 	size_t i = 0;

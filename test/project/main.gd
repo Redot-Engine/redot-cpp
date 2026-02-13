@@ -18,8 +18,7 @@ func _ready():
 
 	# To string.
 	assert_equal(example.to_string(),'[ GDExtension::Example <--> Instance ID:%s ]' % example.get_instance_id())
-	# It appears there's a bug with instance ids :-(
-	#assert_equal($Example/ExampleMin.to_string(), 'ExampleMin:[Wrapped:%s]' % $Example/ExampleMin.get_instance_id())
+	assert_equal($Example/ExampleMin.to_string(), 'ExampleMin:<ExampleMin#%s>' % $Example/ExampleMin.get_instance_id())
 
 	# Call static methods.
 	assert_equal(Example.test_static(9, 100), 109);
@@ -287,6 +286,13 @@ func _ready():
 	assert_equal(library_path.begins_with("res://"), false)
 	assert_equal(library_path, ProjectSettings.globalize_path(library_path))
 	assert_equal(FileAccess.file_exists(library_path), true)
+
+	# Test that internal classes work as expected (at least for Godot 4.5+).
+	assert_equal(ClassDB.can_instantiate("ExampleInternal"), false)
+	assert_equal(ClassDB.instantiate("ExampleInternal"), null)
+	var internal_class = example.test_get_internal_class()
+	assert_equal(internal_class.get_the_answer(), 42)
+	assert_equal(internal_class.get_class(), "ExampleInternal")
 
 	# Test a class with a unicode name.
 	var przykład = ExamplePrzykład.new()

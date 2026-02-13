@@ -37,22 +37,15 @@ Redot version.**
 
 ## Compatibility
 
-> [!WARNING]
->
-> The GDExtension API is brand new since Godot 4.0, and is still
-considered in **beta** stage, despite Redot 4.3 itself being released.
->
-> This applies to both the GDExtension interface header, the API JSON, and this
-first-party `redot-cpp` extension.
->
-> Some compatibility breakage is to be expected as GDExtension and `redot-cpp`
-> get more used, documented, and critical issues get resolved. See the
-> [Redot issue tracker](https://github.com/Redot-Engine/redot-engine/issues?q=is%3Aissue+is%3Aopen+label%3Atopic%3Agdextension),
-> the [Godot issue tracker](ttps://github.com/godotengine/godot/issues?q=is%3Aissue+is%3Aopen+label%3Atopic%3Agdextension),
-> the [godot-cpp issue tracker](https://github.com/godotengine/godot-cpp/issues),
-> and the [redot-cpp issue tracker](https://github.com/Redot-Engine/redot-cpp/issues)
-> for a list of known issues, and be sure to provide feedback on issues and PRs
-> which affect your use of this extension.
+GDExtensions targeting an earlier version of Redot or Godot should work in later minor versions,
+but not vice-versa. For example, a GDExtension targeting Godot 4.2 should work just fine
+in Redot/Godot 4.3, but one targeting Redot/Godot 4.3 won't work in Godot 4.2.
+
+There is one exception to this: extensions targeting Godot 4.0 will _not_ work with
+Godot 4.1 and later.
+See [Updating your GDExtension for 4.1](https://docs.godotengine.org/en/latest/tutorials/migrating/upgrading_to_godot_4.1.html#updating-your-gdextension-for-godot-4-1).
+
+GDExtensions targeting any Redot version may not run on any Godot version.
 
 ## Contributing
 

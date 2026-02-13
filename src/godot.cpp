@@ -49,11 +49,11 @@ GDExtensionInterfaceGetProcAddress gdextension_interface_get_proc_address = null
 GDExtensionClassLibraryPtr library = nullptr;
 void *token = nullptr;
 
-GDExtensionGodotVersion godot_version = { 0, 0, 0, nullptr };
+GDExtensionGodotVersion2 godot_version = {};
 GDExtensionRedotVersion redot_version = { 0, 0, 0, 0, nullptr, 0, nullptr, nullptr, 0, nullptr };
 
 // All of the GDExtension interface functions.
-GDExtensionInterfaceGetGodotVersion gdextension_interface_get_godot_version = nullptr;
+GDExtensionInterfaceGetGodotVersion2 gdextension_interface_get_godot_version2 = nullptr;
 GDExtensionInterfaceGetRedotVersion gdextension_interface_get_redot_version = nullptr;
 GDExtensionInterfaceMemAlloc gdextension_interface_mem_alloc = nullptr;
 GDExtensionInterfaceMemRealloc gdextension_interface_mem_realloc = nullptr;
@@ -166,7 +166,6 @@ GDExtensionInterfacePackedVector4ArrayOperatorIndex gdextension_interface_packed
 GDExtensionInterfacePackedVector4ArrayOperatorIndexConst gdextension_interface_packed_vector4_array_operator_index_const = nullptr;
 GDExtensionInterfaceArrayOperatorIndex gdextension_interface_array_operator_index = nullptr;
 GDExtensionInterfaceArrayOperatorIndexConst gdextension_interface_array_operator_index_const = nullptr;
-GDExtensionInterfaceArrayRef gdextension_interface_array_ref = nullptr;
 GDExtensionInterfaceArraySetTyped gdextension_interface_array_set_typed = nullptr;
 GDExtensionInterfaceDictionaryOperatorIndex gdextension_interface_dictionary_operator_index = nullptr;
 GDExtensionInterfaceDictionaryOperatorIndexConst gdextension_interface_dictionary_operator_index_const = nullptr;
@@ -192,10 +191,12 @@ GDExtensionInterfaceRefSetObject gdextension_interface_ref_set_object = nullptr;
 GDExtensionInterfaceScriptInstanceCreate3 gdextension_interface_script_instance_create3 = nullptr;
 GDExtensionInterfacePlaceHolderScriptInstanceCreate gdextension_interface_placeholder_script_instance_create = nullptr;
 GDExtensionInterfacePlaceHolderScriptInstanceUpdate gdextension_interface_placeholder_script_instance_update = nullptr;
+GDExtensionInterfaceObjectGetScriptInstance gdextension_interface_object_get_script_instance = nullptr;
+GDExtensionInterfaceObjectSetScriptInstance gdextension_interface_object_set_script_instance = nullptr;
 GDExtensionInterfaceClassdbConstructObject2 gdextension_interface_classdb_construct_object2 = nullptr;
 GDExtensionInterfaceClassdbGetMethodBind gdextension_interface_classdb_get_method_bind = nullptr;
 GDExtensionInterfaceClassdbGetClassTag gdextension_interface_classdb_get_class_tag = nullptr;
-GDExtensionInterfaceClassdbRegisterExtensionClass4 gdextension_interface_classdb_register_extension_class4 = nullptr;
+GDExtensionInterfaceClassdbRegisterExtensionClass5 gdextension_interface_classdb_register_extension_class5 = nullptr;
 GDExtensionInterfaceClassdbRegisterExtensionClassMethod gdextension_interface_classdb_register_extension_class_method = nullptr;
 GDExtensionInterfaceClassdbRegisterExtensionClassVirtualMethod gdextension_interface_classdb_register_extension_class_virtual_method = nullptr;
 GDExtensionInterfaceClassdbRegisterExtensionClassIntegerConstant gdextension_interface_classdb_register_extension_class_integer_constant = nullptr;
@@ -213,6 +214,7 @@ GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8Chars gdextension_interface_editor
 GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8CharsAndLen gdextension_interface_editor_help_load_xml_from_utf8_chars_and_len = nullptr;
 GDExtensionInterfaceImagePtrw gdextension_interface_image_ptrw = nullptr;
 GDExtensionInterfaceImagePtr gdextension_interface_image_ptr = nullptr;
+GDExtensionInterfaceRegisterMainLoopCallbacks gdextension_interface_register_main_loop_callbacks = nullptr;
 
 struct DocData {
 	const char *hash = nullptr;
@@ -310,18 +312,14 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 	internal::library = p_library;
 	internal::token = p_library;
 
-	LOAD_PROC_ADDRESS(get_godot_version, GDExtensionInterfaceGetGodotVersion);
-	internal::gdextension_interface_get_godot_version(&internal::godot_version);
+	LOAD_PROC_ADDRESS(get_godot_version2, GDExtensionInterfaceGetGodotVersion2);
+	internal::gdextension_interface_get_godot_version2(&internal::godot_version);
 
-	internal::gdextension_interface_get_redot_version = (GDExtensionInterfaceGetRedotVersion)p_get_proc_address("get_redot_version");
-	if (!internal::gdextension_interface_get_redot_version) {
-		ERR_PRINT_EARLY("Cannot load a GDExtension built for Redot using Godot or non-Redot derivative.");
-		return false;
-	}
+	LOAD_PROC_ADDRESS(get_redot_version, GDExtensionInterfaceGetRedotVersion);
 	internal::gdextension_interface_get_redot_version(&internal::redot_version);
 
-	// Check that redot-cpp was compiled using an extension_api.json older or at the
-	// same version as the Redot that is loading it.
+	// Check that godot-cpp was compiled using an extension_api.json older or at the
+	// same version as the Godot that is loading it.
 	bool compatible;
 	if (internal::redot_version.major != REDOT_VERSION_MAJOR) {
 		compatible = internal::redot_version.major > REDOT_VERSION_MAJOR;
@@ -456,7 +454,6 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 	LOAD_PROC_ADDRESS(packed_vector4_array_operator_index_const, GDExtensionInterfacePackedVector4ArrayOperatorIndexConst);
 	LOAD_PROC_ADDRESS(array_operator_index, GDExtensionInterfaceArrayOperatorIndex);
 	LOAD_PROC_ADDRESS(array_operator_index_const, GDExtensionInterfaceArrayOperatorIndexConst);
-	LOAD_PROC_ADDRESS(array_ref, GDExtensionInterfaceArrayRef);
 	LOAD_PROC_ADDRESS(array_set_typed, GDExtensionInterfaceArraySetTyped);
 	LOAD_PROC_ADDRESS(dictionary_operator_index, GDExtensionInterfaceDictionaryOperatorIndex);
 	LOAD_PROC_ADDRESS(dictionary_operator_index_const, GDExtensionInterfaceDictionaryOperatorIndexConst);
@@ -482,10 +479,12 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 	LOAD_PROC_ADDRESS(script_instance_create3, GDExtensionInterfaceScriptInstanceCreate3);
 	LOAD_PROC_ADDRESS(placeholder_script_instance_create, GDExtensionInterfacePlaceHolderScriptInstanceCreate);
 	LOAD_PROC_ADDRESS(placeholder_script_instance_update, GDExtensionInterfacePlaceHolderScriptInstanceUpdate);
+	LOAD_PROC_ADDRESS(object_get_script_instance, GDExtensionInterfaceObjectGetScriptInstance);
+	LOAD_PROC_ADDRESS(object_set_script_instance, GDExtensionInterfaceObjectSetScriptInstance);
 	LOAD_PROC_ADDRESS(classdb_construct_object2, GDExtensionInterfaceClassdbConstructObject2);
 	LOAD_PROC_ADDRESS(classdb_get_method_bind, GDExtensionInterfaceClassdbGetMethodBind);
 	LOAD_PROC_ADDRESS(classdb_get_class_tag, GDExtensionInterfaceClassdbGetClassTag);
-	LOAD_PROC_ADDRESS(classdb_register_extension_class4, GDExtensionInterfaceClassdbRegisterExtensionClass4);
+	LOAD_PROC_ADDRESS(classdb_register_extension_class5, GDExtensionInterfaceClassdbRegisterExtensionClass5);
 	LOAD_PROC_ADDRESS(classdb_register_extension_class_method, GDExtensionInterfaceClassdbRegisterExtensionClassMethod);
 	LOAD_PROC_ADDRESS(classdb_register_extension_class_virtual_method, GDExtensionInterfaceClassdbRegisterExtensionClassVirtualMethod);
 	LOAD_PROC_ADDRESS(classdb_register_extension_class_integer_constant, GDExtensionInterfaceClassdbRegisterExtensionClassIntegerConstant);
@@ -503,6 +502,7 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 	LOAD_PROC_ADDRESS(editor_help_load_xml_from_utf8_chars_and_len, GDExtensionsInterfaceEditorHelpLoadXmlFromUtf8CharsAndLen);
 	LOAD_PROC_ADDRESS(image_ptrw, GDExtensionInterfaceImagePtrw);
 	LOAD_PROC_ADDRESS(image_ptr, GDExtensionInterfaceImagePtr);
+	LOAD_PROC_ADDRESS(register_main_loop_callbacks, GDExtensionInterfaceRegisterMainLoopCallbacks);
 
 	r_initialization->initialize = initialize_level;
 	r_initialization->deinitialize = deinitialize_level;
@@ -532,6 +532,10 @@ void GDExtensionBinding::initialize_level(void *p_userdata, GDExtensionInitializ
 		ClassDB::initialize(p_level);
 	}
 	level_initialized[p_level]++;
+
+	if ((ModuleInitializationLevel)p_level == MODULE_INITIALIZATION_LEVEL_CORE && init_data && init_data->has_main_loop_callbacks()) {
+		internal::gdextension_interface_register_main_loop_callbacks(internal::library, &init_data->main_loop_callbacks);
+	}
 
 	if ((ModuleInitializationLevel)p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		internal::gdextension_interface_editor_register_get_classes_used_callback(internal::library, &ClassDB::_editor_get_classes_used_callback);
@@ -601,6 +605,18 @@ void GDExtensionBinding::InitObject::register_terminator(Callback p_terminate) c
 
 void GDExtensionBinding::InitObject::set_minimum_library_initialization_level(ModuleInitializationLevel p_level) const {
 	init_data->minimum_initialization_level = static_cast<GDExtensionInitializationLevel>(p_level);
+}
+
+void GDExtensionBinding::InitObject::register_startup_callback(GDExtensionMainLoopStartupCallback p_callback) const {
+	init_data->main_loop_callbacks.startup_func = p_callback;
+}
+
+void GDExtensionBinding::InitObject::register_frame_callback(GDExtensionMainLoopFrameCallback p_callback) const {
+	init_data->main_loop_callbacks.frame_func = p_callback;
+}
+
+void GDExtensionBinding::InitObject::register_shutdown_callback(GDExtensionMainLoopShutdownCallback p_callback) const {
+	init_data->main_loop_callbacks.shutdown_func = p_callback;
 }
 
 GDExtensionBool GDExtensionBinding::InitObject::init() const {

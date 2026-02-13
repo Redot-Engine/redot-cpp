@@ -9,7 +9,12 @@ def options(opts):
     opts.Add(
         "android_api_level",
         "Target Android API level",
-        "21",
+        "24",
+    )
+    opts.Add(
+        "ndk_version",
+        "Fully qualified version of ndk to use for compilation.",
+        "28.1.13356709",
     )
     opts.Add(
         "ANDROID_HOME",
@@ -22,14 +27,9 @@ def exists(env):
     return get_android_ndk_root(env) is not None
 
 
-# This must be kept in sync with the value in https://github.com/godotengine/godot/blob/master/platform/android/detect.py#L58.
-def get_ndk_version():
-    return "23.2.8568313"
-
-
 def get_android_ndk_root(env):
     if env["ANDROID_HOME"]:
-        return env["ANDROID_HOME"] + "/ndk/" + get_ndk_version()
+        return env["ANDROID_HOME"] + "/ndk/" + env["ndk_version"]
     else:
         return os.environ.get("ANDROID_NDK_ROOT")
 
@@ -48,9 +48,9 @@ def generate(env):
         my_spawn.configure(env)
 
     # Validate API level
-    if int(env["android_api_level"]) < 21:
-        print("WARNING: minimum supported Android target api is 21. Forcing target api 21.")
-        env["android_api_level"] = "21"
+    if int(env["android_api_level"]) < 24:
+        print("WARNING: minimum supported Android target api is 24. Forcing target api 24.")
+        env["android_api_level"] = "24"
 
     # Setup toolchain
     toolchain = get_android_ndk_root(env) + "/toolchains/llvm/prebuilt/"
@@ -68,7 +68,7 @@ def generate(env):
 
     if not os.path.exists(toolchain):
         print("ERROR: Could not find NDK toolchain at " + toolchain + ".")
-        print("Make sure NDK version " + get_ndk_version() + " is installed.")
+        print("Make sure NDK version " + env["ndk_version"] + " is installed.")
         env.Exit(1)
 
     env.PrependENVPath("PATH", toolchain + "/bin")  # This does nothing half of the time, but we'll put it here anyways
