@@ -24,18 +24,11 @@ def configure(env):
         proc = subprocess.Popen(
             args,
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             shell=False,
             env=env,
             **kwargs,
         )
-        data, err = proc.communicate()
         rv = proc.wait()
-        if rv:
-            print("=====")
-            print(err.decode("utf-8"))
-            print("=====")
         return rv
 
     def mySpawn(sh, escape, cmd, args, env):
