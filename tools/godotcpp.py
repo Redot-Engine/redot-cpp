@@ -530,40 +530,32 @@ def generate(env):
 
 
 def _godot_cpp_build_library(target, source, env):
-    ar = env.subst("$AR")
-    arflags = env.subst("$ARFLAGS")
-    ranlib = env.subst("$RANLIB")
-    ranlibflags = env.subst("$RANLIBFLAGS")
-
-    target_lib = str(target[0])
+    target_lib = target[0]
     # Objects are the source for the library
-    objects = [str(s) for s in source]
+    objects = source
 
     # Create directory if it doesn't exist
-    if not os.path.exists(os.path.dirname(target_lib)):
-        os.makedirs(os.path.dirname(target_lib))
+    if not os.path.exists(os.path.dirname(str(target_lib))):
+        os.makedirs(os.path.dirname(str(target_lib)))
 
     # Remove existing library to start fresh
-    if os.path.exists(target_lib):
-        os.remove(target_lib)
+    if os.path.exists(str(target_lib)):
+        os.remove(str(target_lib))
 
     # Process in chunks of 100
     for i in range(0, len(objects), 100):
         chunk = objects[i : i + 100]
-        # Use Execute with an Action to get proper logging if no_verbose is not used
-        # but here we manually call it.
-        # AR typically needs "rc" flags. On Windows it might be "LIB"
-        # We assume standard SCons ARFLAGS has what's needed.
-        cmd = "%s %s %s %s" % (ar, arflags, target_lib, " ".join(chunk))
+        # Use Execute with a substituted $ARCOM to produce the correct platform command for each chunk.
+        cmd = env.subst("$ARCOM", target=target, source=chunk)
         if not env["verbose"]:
-            print("Archiving %s (chunk %d-%d) ..." % (os.path.basename(target_lib), i, i + len(chunk)))
+            print("Archiving %s (chunk %d-%d) ..." % (os.path.basename(str(target_lib)), i, i + len(chunk)))
         res = env.Execute(cmd)
         if res != 0:
             return res
 
     # Finalize library
-    if ranlib:
-        return env.Execute("%s %s %s" % (ranlib, ranlibflags, target_lib))
+    if "RANLIBCOM" in env and env["RANLIBCOM"]:
+        return env.Execute(env.subst("$RANLIBCOM", target=target, source=source))
     return 0
 
 
