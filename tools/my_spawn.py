@@ -37,9 +37,23 @@ def configure(env):
 
         rv = 0
         if len(cmdline) > 32000 and cmd.endswith("ar"):
-            cmdline = cmd + " " + args[1] + " " + args[2] + " "
-            for i in range(3, len(args)):
-                rv = mySubProcess(cmdline + args[i], env)
+            cmdline_base = cmd + " " + args[1] + " " + args[2] + " "
+
+            i = 3
+            while i < len(args):
+                batch_args = []
+                current_len = len(cmdline_base)
+
+                while i < len(args) and current_len + len(args[i]) + 1 < 32000:
+                    batch_args.append(args[i])
+                    current_len += len(args[i]) + 1
+                    i += 1
+
+                if not batch_args:  # Should not happen unless a single arg is > 32000
+                    batch_args.append(args[i])
+                    i += 1
+
+                rv = mySubProcess(cmdline_base + " ".join(batch_args), env)
                 if rv:
                     break
         else:
