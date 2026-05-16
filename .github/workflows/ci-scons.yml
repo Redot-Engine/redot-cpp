@@ -48,15 +48,6 @@ jobs:
             run-tests: false
             cache-name: windows-x86_64-msvc
 
-          - name: 🏁 Windows (x86_64, MinGW)
-            os: windows-2022
-            platform: windows
-            artifact-name: redot-cpp-linux-mingw-x86_64-release
-            artifact-path: bin/libredot-cpp.windows.template_release.x86_64.a
-            flags: use_mingw=yes
-            run-tests: false
-            cache-name: windows-x86_64-mingw
-
           - name: 🍎 macOS (universal)
             os: macos-latest
             platform: macos
