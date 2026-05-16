@@ -12,6 +12,56 @@ def exists(env):
     return True
 
 
+def configure(env):
+    import subprocess
+
+    def mySubProcess(cmdline, env):
+        import shlex
+
+        kwargs = {}
+        args = shlex.split(cmdline)
+
+        proc = subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            env=env,
+            **kwargs,
+        )
+        data, err = proc.communicate()
+        rv = proc.wait()
+        if rv:
+            print("=====")
+            print(err.decode("utf-8"))
+            print("=====")
+        return rv
+
+    def mySpawn(sh, escape, cmd, args, env):
+        rv = 0
+        if len(args) > 512 and cmd.endswith("ar"):
+            cmdline = cmd + " " + args[1] + " " + args[2] + " "
+            for i in range(3, len(args), 510):
+                batch = args[i : i + 510]
+                line = cmdline + " ".join(batch)
+                print(line)
+                rv = mySubProcess(line, env)
+                if rv:
+                    break
+        else:
+            newargs = " ".join(args[1:])
+            cmdline = cmd + " " + newargs
+            if cmd.endswith("ar"):
+                print(cmdline)
+            rv = mySubProcess(cmdline, env)
+
+        return rv
+
+    env["SPAWN"] = mySpawn
+    env.Replace(ARFLAGS=["q"])
+
+
 def generate(env):
     if env["use_llvm"]:
         clang.generate(env)
@@ -49,3 +99,5 @@ def generate(env):
         env["lto"] = "full"
 
     common_compiler_flags.generate(env)
+
+    configure(env)
