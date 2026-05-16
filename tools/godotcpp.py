@@ -528,6 +528,44 @@ def generate(env):
     env.AddMethod(_godot_cpp, "GodotCPP")
 
 
+def _godot_cpp_build_library(target, source, env):
+    ar = env.subst("$AR")
+    arflags = env.subst("$ARFLAGS")
+    ranlib = env.subst("$RANLIB")
+    ranlibflags = env.subst("$RANLIBFLAGS")
+
+    target_lib = str(target[0])
+    # Objects are the source for the library
+    objects = [str(s) for s in source]
+
+    # Create directory if it doesn't exist
+    if not os.path.exists(os.path.dirname(target_lib)):
+        os.makedirs(os.path.dirname(target_lib))
+
+    # Remove existing library to start fresh
+    if os.path.exists(target_lib):
+        os.remove(target_lib)
+
+    # Process in chunks of 100
+    for i in range(0, len(objects), 100):
+        chunk = objects[i : i + 100]
+        # Use Execute with an Action to get proper logging if no_verbose is not used
+        # but here we manually call it.
+        # AR typically needs "rc" flags. On Windows it might be "LIB"
+        # We assume standard SCons ARFLAGS has what's needed.
+        cmd = "%s %s %s %s" % (ar, arflags, target_lib, " ".join(chunk))
+        if not env["verbose"]:
+            print("Archiving %s (chunk %d-%d) ..." % (os.path.basename(target_lib), i, i + len(chunk)))
+        res = env.Execute(cmd)
+        if res != 0:
+            return res
+
+    # Finalize library
+    if ranlib:
+        return env.Execute("%s %s %s" % (ranlib, ranlibflags, target_lib))
+    return 0
+
+
 def _godot_cpp(env):
     extension_dir = normalize_path(env.get("gdextension_dir", default=env.Dir("gdextension").srcnode().abspath), env)
     api_file = normalize_path(
@@ -569,7 +607,12 @@ def _godot_cpp(env):
     library_name = "libgodot-cpp" + env["suffix"] + env["LIBSUFFIX"]
 
     if env["build_library"]:
-        library = env.StaticLibrary(target=env.File("bin/%s" % library_name), source=sources)
+        objects = [env.Object(s) for s in sources]
+        library = env.Command(
+            target=env.File("bin/%s" % library_name),
+            source=objects,
+            action=Action(_godot_cpp_build_library, "$ARCOMSTR"),
+        )
         env.NoCache(library)
         default_args = [library]
 
