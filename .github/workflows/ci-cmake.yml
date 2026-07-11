@@ -33,10 +33,10 @@ jobs:
       matrix:
         include:
           - name: 🐧 Linux (GCC, Makefiles)
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             platform: linux
             config-flags: -DCMAKE_BUILD_TYPE=Release
-            artifact-name: godot-cpp-linux-glibc2.27-x86_64-release.cmake
+            artifact-name: godot-cpp-linux-glibc2.39-x86_64-release.cmake
             artifact-path: cmake-build/bin/libgodot-cpp.linux.template_release.x86_64.a
             run-tests: true
 

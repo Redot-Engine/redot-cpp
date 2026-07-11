@@ -24,9 +24,9 @@ jobs:
       matrix:
         include:
           - name: 🐧 Linux (GCC)
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             platform: linux
-            artifact-name: redot-cpp-linux-glibc2.27-x86_64-release
+            artifact-name: redot-cpp-linux-glibc2.39-x86_64-release
             artifact-path: bin/libredot-cpp.linux.template_release.x86_64.a
             run-tests: true
             cache-name: linux-x86_64
