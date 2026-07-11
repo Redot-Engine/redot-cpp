@@ -86,11 +86,15 @@ missing. ]]
 function(
     binding_generator_generate_bindings
     API_FILE
-    USE_TEMPLATE_GET_NODE,
-    BITS,
-    PRECISION,
+    USE_TEMPLATE_GET_NODE
+    BITS
+    PRECISION
     OUTPUT_DIR
 )
+    if(PRECISION STREQUAL "")
+        set(PRECISION "single")
+    endif()
+
     # This code snippet will be squashed into a single line
     set(PYTHON_SCRIPT
         "from binding_generator import generate_bindings"
