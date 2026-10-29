@@ -49,7 +49,7 @@ jobs:
             cache-name: macos-universal
 
           - name: 🤖 Android (arm64)
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             platform: android
             artifact-name: redot-cpp-android-arm64-release
             artifact-path: bin/libredot-cpp.android.template_release.arm64.a
@@ -67,7 +67,7 @@ jobs:
             cache-name: ios-arm64
 
           - name: 🌐 Web (wasm32)
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             platform: web
             artifact-name: redot-cpp-web-wasm32-release
             artifact-path: bin/libredot-cpp.web.template_release.wasm32.a
