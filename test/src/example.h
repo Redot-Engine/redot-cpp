@@ -148,6 +148,7 @@ public:
 	Vector2i test_variant_vector2i_conversion(const Variant &p_variant) const;
 	int test_variant_int_conversion(const Variant &p_variant) const;
 	float test_variant_float_conversion(const Variant &p_variant) const;
+	bool test_variant_struct(const Variant &p_variant) const;
 	bool test_object_is_valid(const Variant &p_variant) const;
 
 	void test_add_child(Node *p_node);

@@ -2,6 +2,10 @@ extends "res://test_base.gd"
 
 var custom_signal_emitted = null
 
+struct TestStruct:
+	var value: int
+	var reference: RefCounted
+
 class TestClass:
 	func test(p_msg: String) -> String:
 		return p_msg + " world"
@@ -208,6 +212,12 @@ func _ready():
 	assert_equal(example.test_variant_int_conversion(10.0), 10)
 	assert_equal(example.test_variant_float_conversion(10.0), 10.0)
 	assert_equal(example.test_variant_float_conversion(10), 10.0)
+
+	# Struct Variants must preserve fields and release their references when cleared.
+	var struct_reference = RefCounted.new()
+	assert_equal(example.test_variant_struct(TestStruct.new(42, struct_reference)), true)
+	assert_equal(struct_reference.get_reference_count(), 1)
+	assert_equal(example.test_variant_struct(null), false)
 
 	# Test checking if objects are valid.
 	var object_of_questionable_validity = Object.new()

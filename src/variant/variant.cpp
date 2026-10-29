@@ -49,6 +49,10 @@ GDExtensionTypeFromVariantConstructorFunc Variant::to_type_constructor[Variant::
 void Variant::init_bindings() {
 	// Start from 1 to skip NIL.
 	for (int i = 1; i < VARIANT_MAX; i++) {
+		// The GDExtension interface does not expose direct Struct/Variant conversions.
+		if (i == STRUCT) {
+			continue;
+		}
 		from_type_constructor[i] = internal::gdextension_interface_get_variant_from_type_constructor((GDExtensionVariantType)i);
 		to_type_constructor[i] = internal::gdextension_interface_get_variant_to_type_constructor((GDExtensionVariantType)i);
 	}
@@ -72,6 +76,7 @@ void Variant::init_bindings() {
 	PackedVector3Array::init_bindings();
 	PackedVector4Array::init_bindings();
 	PackedColorArray::init_bindings();
+	Struct::init_bindings();
 }
 
 Variant::Variant() {
@@ -785,6 +790,9 @@ void Variant::clear() {
 		true, // PACKED_VECTOR2_ARRAY,
 		true, // PACKED_VECTOR3_ARRAY,
 		true, // PACKED_COLOR_ARRAY,
+		true, // PACKED_VECTOR4_ARRAY,
+
+		true, // STRUCT,
 	};
 
 	if (unlikely(needs_deinit[get_type()])) { // Make it fast for types that don't need deinit.

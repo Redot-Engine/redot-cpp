@@ -218,6 +218,7 @@ void Example::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("test_variant_vector2i_conversion", "variant"), &Example::test_variant_vector2i_conversion);
 	ClassDB::bind_method(D_METHOD("test_variant_int_conversion", "variant"), &Example::test_variant_int_conversion);
 	ClassDB::bind_method(D_METHOD("test_variant_float_conversion", "variant"), &Example::test_variant_float_conversion);
+	ClassDB::bind_method(D_METHOD("test_variant_struct", "variant"), &Example::test_variant_struct);
 	ClassDB::bind_method(D_METHOD("test_object_is_valid", "variant"), &Example::test_object_is_valid);
 
 	ClassDB::bind_method(D_METHOD("test_add_child", "node"), &Example::test_add_child);
@@ -600,6 +601,21 @@ int Example::test_variant_int_conversion(const Variant &p_variant) const {
 
 float Example::test_variant_float_conversion(const Variant &p_variant) const {
 	return p_variant;
+}
+
+bool Example::test_variant_struct(const Variant &p_variant) const {
+	static_assert(int(Variant::STRUCT) == int(GDEXTENSION_VARIANT_TYPE_STRUCT));
+	static_assert(int(Variant::VARIANT_MAX) == int(GDEXTENSION_VARIANT_TYPE_VARIANT_MAX));
+	if (p_variant.get_type() != Variant::STRUCT) {
+		return false;
+	}
+	Struct empty;
+	Struct empty_copy(empty);
+	Variant copy = p_variant;
+	bool valid = false;
+	Variant value = copy.get_named("value", valid);
+	copy.clear();
+	return valid && value == Variant(42) && copy.get_type() == Variant::NIL && !empty && empty == empty_copy;
 }
 
 bool Example::test_object_is_valid(const Variant &p_variant) const {

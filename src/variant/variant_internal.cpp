@@ -38,6 +38,10 @@ GDExtensionVariantGetInternalPtrFunc VariantInternal::get_internal_func[Variant:
 
 void VariantInternal::init_bindings() {
 	for (int i = 1; i < Variant::VARIANT_MAX; i++) {
+		// The GDExtension interface does not expose a Struct internal pointer getter.
+		if (i == Variant::STRUCT) {
+			continue;
+		}
 		get_internal_func[i] = internal::gdextension_interface_variant_get_ptr_internal_getter((GDExtensionVariantType)i);
 	}
 }
