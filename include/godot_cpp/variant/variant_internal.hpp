@@ -380,6 +380,7 @@ public:
 				return get_vector4_array(v);
 			case Variant::OBJECT:
 				return get_object(v);
+			case Variant::STRUCT:
 			case Variant::VARIANT_MAX:
 				ERR_FAIL_V(nullptr);
 		}
@@ -466,6 +467,7 @@ public:
 				return get_vector4_array(v);
 			case Variant::OBJECT:
 				return get_object(v);
+			case Variant::STRUCT:
 			case Variant::VARIANT_MAX:
 				ERR_FAIL_V(nullptr);
 		}
