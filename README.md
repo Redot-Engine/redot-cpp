@@ -58,14 +58,14 @@ first-party `redot-cpp` extension.
 
 We greatly appreciate help in maintaining and extending this project. If you
 wish to help out, ensure you have an account on GitHub and create a "fork" of
-this repository. See [Pull request workflow](https://docs.redotengine.org/en/stable/community/contributing/pr_workflow.html)
+this repository. See [Pull request workflow](https://docs.redotengine.org/en/Contributing/Workflow/pr_workflow)
 for instructions.
 
-Please install clang-format and the [pre-commit](https://pre-commit.com/) Python framework so formatting is done before your changes are submitted. See the [code style guidelines](https://docs.godotengine.org/en/latest/contributing/development/code_style_guidelines.html#pre-commit-hook) for instructions.
+Please install clang-format and the [pre-commit](https://pre-commit.com/) Python framework so formatting is done before your changes are submitted. See the [code style guidelines](https://docs.redotengine.org/en/Contributing/Development/code_style_guidelines#pre-commit-hook) for instructions.
 
 ## Getting started
 
-You need the same C++ pre-requisites installed that are required for the `redot-engine` repository. Follow the [official build instructions for your target platform](https://docs.redotengine.org/en/latest/contributing/development/compiling/index.html#building-for-target-platforms).
+You need the same C++ pre-requisites installed that are required for the `redot-engine` repository. Follow the [official build instructions for your target platform](https://docs.redotengine.org/en/Contributing/Development/compiling/introduction_to_the_buildsystem).
 
 Getting started with GDExtensions is a bit similar to what it was for Godot 3.x but also a bit different.
 
